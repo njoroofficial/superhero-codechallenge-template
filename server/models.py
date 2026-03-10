@@ -10,7 +10,7 @@ metadata = MetaData(naming_convention={
 
 db = SQLAlchemy(metadata=metadata)
 
-
+# hero model
 class Hero(db.Model, SerializerMixin):
     __tablename__ = 'heroes'
 
@@ -35,6 +35,7 @@ class Hero(db.Model, SerializerMixin):
         return f'<Hero {self.id}>'
 
 
+# power model
 class Power(db.Model, SerializerMixin):
     __tablename__ = 'powers'
 
@@ -55,6 +56,7 @@ class Power(db.Model, SerializerMixin):
         '-heroes',
     )
 
+    # validate description
     @validates('description')
     def validate_description(self, key, description):
         if not description or len(description) < 20:
@@ -65,6 +67,7 @@ class Power(db.Model, SerializerMixin):
         return f'<Power {self.id}>'
 
 
+# hero-power model of the many to many relationship
 class HeroPower(db.Model, SerializerMixin):
     __tablename__ = 'hero_powers'
 
@@ -83,6 +86,7 @@ class HeroPower(db.Model, SerializerMixin):
         '-power.heroes',
     )
 
+    # validate strength
     @validates('strength')
     def validate_strength(self, key, strength):
         valid_strengths = {'Strong', 'Weak', 'Average'}

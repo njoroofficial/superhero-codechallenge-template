@@ -15,59 +15,55 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-# Attach migration support to the app and SQLAlchemy instance.
+# Add migration support to the app and SQLAlchemy instance.
 migrate = Migrate(app, db)
 
-# Initialize the SQLAlchemy extension with this Flask app.
+# Initialize the SQLAlchemy extension with Flask app.
 db.init_app(app)
 
+#  home page route
 @app.route('/')
 def index():
     return '<h1>Code challenge</h1>'
 
-
+# Fetch all heroes and return and return their name and super name
 @app.route('/heroes', methods=['GET'])
-def get_heroes():
-    # Fetch all heroes and return only the list fields expected by the client.
+def get_heroes(): 
     heroes = Hero.query.all()
     heroes_dict = [hero.to_dict(only=('id', 'name', 'super_name')) for hero in heroes]
     return make_response(jsonify(heroes_dict), 200)
 
-
+# Get a hero by id
 @app.route('/heroes/<int:id>', methods=['GET'])
-def get_hero_by_id(id):
-    # Look up the hero; return 404 if it doesn't exist.
+def get_hero_by_id(id):  
     hero = Hero.query.filter(Hero.id == id).first()
     if not hero:
         return make_response(jsonify({'error': 'Hero not found'}), 404)
-    # Full hero payload includes hero_powers per model serialization rules.
     return make_response(jsonify(hero.to_dict()), 200)
 
-
+# Fetch all powers and return and return the name and description
 @app.route('/powers', methods=['GET'])
 def get_powers():
-    # Fetch all powers and return only the list fields expected by the client.
     powers = Power.query.all()
     powers_dict = [
         power.to_dict(only=('id', 'name', 'description')) for power in powers
     ]
     return make_response(jsonify(powers_dict), 200)
 
-
+# Get power by id
 @app.route('/powers/<int:id>', methods=['GET', 'PATCH'])
 def power_by_id(id):
-    # Look up the power; return 404 if it doesn't exist.
     power = Power.query.filter(Power.id == id).first()
     if not power:
         return make_response(jsonify({'error': 'Power not found'}), 404)
 
+    # if method is GET we return the name and description
     if request.method == 'GET':
-        # Return the single power resource.
         return make_response(
             jsonify(power.to_dict(only=('id', 'name', 'description'))), 200
         )
 
-    # PATCH: update the power description if present in the payload.
+    # if method is PATCH, update the power description 
     data = request.get_json() or {}
     try:
         if 'description' in data:
@@ -77,14 +73,14 @@ def power_by_id(id):
             jsonify(power.to_dict(only=('id', 'name', 'description'))), 200
         )
     except ValueError:
-        # Validation errors from the model return a 400.
+        # Validation errors.
         db.session.rollback()
         return make_response(jsonify({'errors': ['validation errors']}), 400)
 
 
+ # Create a new HeroPower
 @app.route('/hero_powers', methods=['POST'])
 def create_hero_power():
-    # Create a new HeroPower from the request payload.
     data = request.get_json() or {}
     try:
         hero_power = HeroPower(
@@ -94,7 +90,7 @@ def create_hero_power():
         )
         db.session.add(hero_power)
         db.session.commit()
-        # Build a minimal, non-recursive response payload.
+        # the return response to the client.
         response_data = {
             'id': hero_power.id,
             'hero_id': hero_power.hero_id,
@@ -105,7 +101,7 @@ def create_hero_power():
         }
         return make_response(jsonify(response_data), 200)
     except ValueError:
-        # Validation errors from the model return a 400.
+        # Validation errors 
         db.session.rollback()
         return make_response(jsonify({'errors': ['validation errors']}), 400)
 
