@@ -25,7 +25,11 @@ class Hero(db.Model, SerializerMixin):
     )
     powers = association_proxy('hero_powers', 'power')
 
-    serialization_rules = ('-hero_powers.hero', '-hero_powers.power.hero_powers')
+    serialization_rules = (
+        '-hero_powers.hero',
+        '-hero_powers.power.hero_powers',
+        '-powers',
+    )
 
     def __repr__(self):
         return f'<Hero {self.id}>'
@@ -45,7 +49,11 @@ class Power(db.Model, SerializerMixin):
     )
     heroes = association_proxy('hero_powers', 'hero')
 
-    serialization_rules = ('-hero_powers.power', '-hero_powers.hero.hero_powers')
+    serialization_rules = (
+        '-hero_powers.power',
+        '-hero_powers.hero.hero_powers',
+        '-heroes',
+    )
 
     @validates('description')
     def validate_description(self, key, description):
@@ -68,7 +76,12 @@ class HeroPower(db.Model, SerializerMixin):
     hero = db.relationship('Hero', back_populates='hero_powers')
     power = db.relationship('Power', back_populates='hero_powers')
 
-    serialization_rules = ('-hero.hero_powers', '-power.hero_powers')
+    serialization_rules = (
+        '-hero.hero_powers',
+        '-hero.powers',
+        '-power.hero_powers',
+        '-power.heroes',
+    )
 
     @validates('strength')
     def validate_strength(self, key, strength):

@@ -94,8 +94,16 @@ def create_hero_power():
         )
         db.session.add(hero_power)
         db.session.commit()
-        # Full payload includes nested hero and power per serialization rules.
-        return make_response(jsonify(hero_power.to_dict()), 200)
+        # Build a minimal, non-recursive response payload.
+        response_data = {
+            'id': hero_power.id,
+            'hero_id': hero_power.hero_id,
+            'power_id': hero_power.power_id,
+            'strength': hero_power.strength,
+            'hero': hero_power.hero.to_dict(only=('id', 'name', 'super_name')),
+            'power': hero_power.power.to_dict(only=('id', 'name', 'description')),
+        }
+        return make_response(jsonify(response_data), 200)
     except ValueError:
         # Validation errors from the model return a 400.
         db.session.rollback()
